@@ -8,7 +8,7 @@ class parser(object):
         self.image_folder = "../imaterialist/train/"  # image folder path
         self.df_path = "../imaterialist/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
-        self.isTrain = True
+        self.isTrain = False
 
         self.fine_width = 192 * 4
         self.fine_height = 192 * 4
