@@ -5,8 +5,8 @@ import os
 class parser(object):
     def __init__(self):
         self.name = "training_cloth_segm_u2net_exp1"  # Expriment name
-        self.image_folder = "../train/"  # image folder path
-        self.df_path = "../train.csv"  # label csv path
+        self.image_folder = "./imaterialist/train/"  # image folder path
+        self.df_path = "./imaterialist/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
         self.isTrain = False
 
@@ -17,8 +17,8 @@ class parser(object):
         self.mean = 0.5
         self.std = 0.5
 
-        self.batchSize = 2  # 12
-        self.nThreads = 2  # 3
+        self.batchSize = 12  # 12
+        self.nThreads = 3  # 3
         self.max_dataset_size = float("inf")
 
         self.serial_batches = False

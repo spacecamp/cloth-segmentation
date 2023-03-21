@@ -33,13 +33,15 @@ class AlignedDataset(BaseDataset):
 
         self.df = pd.read_csv(self.df_path)
         self.image_info = collections.defaultdict(dict)
-        self.df["CategoryId"] = self.df.ClassId.apply(lambda x: str(x).split("_")[0])
+        self.df["CategoryId"] = self.df.ClassId.apply(
+            lambda x: str(x).split("_")[0])
         temp_df = (
             self.df.groupby("ImageId")["EncodedPixels", "CategoryId"]
             .agg(lambda x: list(x))
             .reset_index()
         )
-        size_df = self.df.groupby("ImageId")["Height", "Width"].mean().reset_index()
+        size_df = self.df.groupby(
+            "ImageId")["Height", "Width"].mean().reset_index()
         temp_df = temp_df.merge(size_df, on="ImageId", how="left")
         for index, row in tqdm(temp_df.iterrows(), total=len(temp_df)):
             image_id = row["ImageId"]
@@ -49,8 +51,8 @@ class AlignedDataset(BaseDataset):
             self.image_info[index]["width"] = self.width
             self.image_info[index]["height"] = self.height
             self.image_info[index]["labels"] = row["CategoryId"]
-            self.image_info[index]["orig_height"] = row["Height"]
-            self.image_info[index]["orig_width"] = row["Width"]
+            self.image_info[index]["orig_height"] = int(row["Height"])
+            self.image_info[index]["orig_width"] =  int(row["Width"])
             self.image_info[index]["annotations"] = row["EncodedPixels"]
 
         self.dataset_size = len(self.image_info)
@@ -105,7 +107,8 @@ class AlignedDataset(BaseDataset):
             new_labels.append(0)
             new_masks.append(mask[0, :, :])
 
-        nmx = np.zeros((len(new_masks), self.width, self.height), dtype=np.uint8)
+        nmx = np.zeros((len(new_masks), self.width,
+                       self.height), dtype=np.uint8)
         for i, n in enumerate(new_masks):
             nmx[i, :, :] = n
 
@@ -117,10 +120,16 @@ class AlignedDataset(BaseDataset):
         first_channel = np.zeros((self.width, self.height), dtype=np.uint8)
         second_channel = np.zeros((self.width, self.height), dtype=np.uint8)
         third_channel = np.zeros((self.width, self.height), dtype=np.uint8)
+        forth_channel = np.zeros((self.width, self.height), dtype=np.uint8)
+        fifth_channel = np.zeros((self.width, self.height), dtype=np.uint8)
+        sixth_channel = np.zeros((self.width, self.height), dtype=np.uint8)
 
         upperbody = [0, 1, 2, 3, 4, 5]
         lowerbody = [6, 7, 8]
         wholebody = [9, 10, 11, 12]
+        head = [13, 14]
+        legs_and_feet = [20, 21, 22, 23]
+        others = [24]
 
         for i in range(len(labels)):
             if labels[i] in upperbody:
@@ -129,12 +138,21 @@ class AlignedDataset(BaseDataset):
                 second_channel += new_masks[i]
             elif labels[i] in wholebody:
                 third_channel += new_masks[i]
+            elif labels[i] in head:
+                forth_channel += new_masks[i]
+            elif labels[i] in legs_and_feet:
+                fifth_channel += new_masks[i]
+            elif labels[i] in others:
+                sixth_channel += new_masks[i]
 
         first_channel = (first_channel > 0).astype("uint8")
         second_channel = (second_channel > 0).astype("uint8")
         third_channel = (third_channel > 0).astype("uint8")
+        forth_channel = (forth_channel > 0).astype("uint8")
+        fifth_channel = (fifth_channel > 0).astype("uint8")
+        sixth_channel = (sixth_channel > 0).astype("uint8")
 
-        final_label = first_channel + second_channel * 2 + third_channel * 3
+        final_label = first_channel + second_channel * 2 + third_channel * 3 + forth_channel * 4 + fifth_channel * 5 + sixth_channel * 6
         conflict_mask = (final_label <= 3).astype("uint8")
         final_label = (conflict_mask) * final_label + (1 - conflict_mask) * 1
         target_tensor = torch.as_tensor(final_label, dtype=torch.int64)
@@ -156,7 +174,8 @@ class AlignedDataset(BaseDataset):
         shape = (shape[1], shape[0])
         s = mask_rle.split()
         # gets starts & lengths 1d arrays
-        starts, lengths = [np.asarray(x, dtype=int) for x in (s[0::2], s[1::2])]
+        starts, lengths = [np.asarray(x, dtype=int)
+                           for x in (s[0::2], s[1::2])]
         starts -= 1
         # gets ends 1d array
         ends = starts + lengths
