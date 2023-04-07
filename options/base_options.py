@@ -5,8 +5,8 @@ import os
 class parser(object):
     def __init__(self):
         self.name = "training_cloth_segm_u2net_exp1"  # Expriment name
-        self.image_folder = "./imaterialist-fashion-2019-FGVC6/train/"  # image folder path
-        self.df_path = "./imaterialist-fashion-2019-FGVC6/train.csv"  # label csv path
+        self.image_folder = "/content/gdrive/MyDrive/AI/imaterialist/train/"  # image folder path
+        self.df_path = "/content/gdrive/MyDrive/AI/imaterialist/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
         self.isTrain = False
 
